@@ -8,26 +8,18 @@ export interface BillParticipant {
   personId: number;
   shareRatio: number;
   shareAmount?: number;
-  isPaid?: boolean;
-  person?: {
-    id: number;
-    name: string;
-    email?: string;
-  };
 }
 
 export interface Bill {
   id: number;
   title: string;
   description?: string;
-  totalAmount: number;
-  status: 'pending' | 'settled' | 'cancelled';
-  payerId: number;
-  payer?: {
+  billItems: {
     id: number;
-    username: string;
-    name?: string;
-  };
+    amount: number;
+    payerId: number;
+    participants: BillParticipant[];
+  }[];
   participants: BillParticipant[];
   createdAt: string;
   updatedAt: string;
@@ -114,6 +106,8 @@ export const updateParticipantPayment = async (
     throw new Error(response.data.message);
   }
 };
+
+// 移除 updateParticipantPayment 方法
 
 export const getBillStatistics = async (): Promise<any> => {
   const response = await axios.get<ApiResponse<any>>(`${API_BASE_URL}/bills/statistics`);

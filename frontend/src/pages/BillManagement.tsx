@@ -13,20 +13,12 @@ import {
   Typography,
   Row,
   Col,
-  Tag,
   Popconfirm,
-  Checkbox,
   Tooltip,
-  Slider,
 } from 'antd';
 import {
   PlusOutlined,
-  EditOutlined,
   DeleteOutlined,
-  EyeOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  StopOutlined,
 } from '@ant-design/icons';
 import PeopleRatio from './components/peopleRatio';
 import {
@@ -34,7 +26,6 @@ import {
   getAllBills,
   updateBill,
   deleteBill,
-  updateParticipantPayment,
 } from '../services/bills';
 import type {
   Bill,
@@ -43,8 +34,7 @@ import type {
 import type { Person } from '../services/people';
 import { getAllPeople } from '../services/people';
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+const { Title } = Typography;
 
 interface BillFormData {
   billItems: {
@@ -57,12 +47,10 @@ interface BillFormData {
 
 const BillManagement: React.FC = () => {
   const [bills, setBills] = useState<Bill[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
+  const [people, setPeople] = useState<Omit<Person, 'email' | 'phone' | 'note' | 'createdAt' | 'updatedAt'>[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
-  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [selectedParticipants, setSelectedParticipants] = useState<{
     id: number;
     name: string;
@@ -78,7 +66,7 @@ const BillManagement: React.FC = () => {
   selectedParticipants.forEach(p => {
     shareRatioMap[p.id] = p.shareRatio;
   });
-  const peopleMap: Record<number, Person> = {};
+  const peopleMap: Record<number, Omit<Person, 'email' | 'phone' | 'note' | 'createdAt' | 'updatedAt'>> = {};
   people.forEach(p => {
     peopleMap[p.id] = p;
   })
@@ -94,7 +82,10 @@ const BillManagement: React.FC = () => {
         getAllPeople(),
       ]);
       setBills(billsData);
-      setPeople(peopleData);
+      setPeople(peopleData.map(item => ({
+        id: item.id,
+        name: item.name
+      })));
     } catch (error) {
       message.error('加载数据失败');
     } finally {
@@ -108,15 +99,13 @@ const BillManagement: React.FC = () => {
 
   // 处理创建/编辑账单
   const handleSubmit = async (values: BillFormData) => {
-    console.log(values, '=====values')
-    return;
     try {
       const billData: any = {
-        // title: values.title,
-        // description: values.description,
-        // totalAmount: values.totalAmount,
-        // payerId: values.payerId,
-        // participants: selectedParticipants,
+        ...values,
+        billItems: values.billItems?.map(item => ({
+          ...item,
+          participants: item.participants?.map(personId => ({ personId })) || []
+        })) || []
       };
 
       if (editingBill) {
@@ -150,56 +139,30 @@ const BillManagement: React.FC = () => {
 
   // 处理编辑
   const handleEdit = (bill: Bill) => {
+    console.log(bill, '====bill')
     setEditingBill(bill);
     setSelectedParticipants(
       bill.participants.map(p => ({
         id: p.personId,
-        name: p?.person?.name || '',
+        name: peopleMap[p.personId]?.name || '',
         shareRatio: p.shareRatio,
       }))
     );
-    form.setFieldsValue({
-      title: bill.title,
-      description: bill.description,
-      totalAmount: bill.totalAmount,
-      payerId: bill.payerId,
-    });
+    const newBill = {
+      ...bill,
+      billItems: bill.billItems.map(item => ({
+        ...item,
+        participants: item.participants.map(p => p.personId)
+      })),
+      participants: bill.participants.map(item => {
+        return {
+          id: item.personId,
+          shareRatio: item.shareRatio
+        }
+      })
+    }
+    form.setFieldsValue(newBill);
     setIsModalVisible(true);
-  };
-
-  // 处理查看详情
-  const handleViewDetail = (bill: Bill) => {
-    setSelectedBill(bill);
-    setIsDetailModalVisible(true);
-  };
-
-  // 处理支付状态更新
-  const handlePaymentStatusChange = async (
-    billId: number,
-    participantId: number,
-    isPaid: boolean
-  ) => {
-    try {
-      await updateParticipantPayment(billId, participantId, isPaid);
-      message.success('支付状态更新成功');
-      loadData();
-    } catch (error) {
-      message.error('更新支付状态失败');
-    }
-  };
-
-  // 获取状态标签
-  const getStatusTag = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Tag icon={<ClockCircleOutlined />} color="orange">待处理</Tag>;
-      case 'settled':
-        return <Tag icon={<CheckCircleOutlined />} color="green">已结算</Tag>;
-      case 'cancelled':
-        return <Tag icon={<StopOutlined />} color="red">已取消</Tag>;
-      default:
-        return <Tag>{status}</Tag>;
-    }
   };
 
   // 表格列定义
@@ -223,8 +186,10 @@ const BillManagement: React.FC = () => {
       title: '总金额',
       dataIndex: 'totalAmount',
       key: 'totalAmount',
-      render: (amount: number) => `¥${amount.toFixed(2)}`,
-      sorter: (a: Bill, b: Bill) => a.totalAmount - b.totalAmount,
+      render: (_: any, record: Bill) => {
+        const total = record.billItems?.reduce((total, item) => total + (Number(item.amount) || 0), 0) || 0;
+        return `¥${total?.toFixed(2) || '0.00'}`;
+      },
     },
     {
       title: '参与人数',
@@ -244,20 +209,7 @@ const BillManagement: React.FC = () => {
       key: 'actions',
       render: (_: any, record: Bill) => (
         <Space>
-          <Tooltip title="查看详情">
-            {/* <Button
-              type="text"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetail(record)}
-            /> */}
-            <Typography.Link onClick={() => handleViewDetail(record)}>查看详情</Typography.Link>
-          </Tooltip>
           <Tooltip title="编辑">
-            {/* <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            /> */}
             <Typography.Link onClick={() => handleEdit(record)}>编辑</Typography.Link>
           </Tooltip>
           <Popconfirm
@@ -267,12 +219,7 @@ const BillManagement: React.FC = () => {
             cancelText="取消"
           >
             <Tooltip title="删除">
-              {/* <Button
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-              /> */}
-              <Typography.Link onClick={() => handleDelete(record.id)}>删除</Typography.Link>
+              <Typography.Link>删除</Typography.Link>
             </Tooltip>
           </Popconfirm>
         </Space>
@@ -364,6 +311,12 @@ const BillManagement: React.FC = () => {
         >
 
           <Card title="基本信息" style={{ marginBottom: 24 }}>
+            <Form.Item
+              name="id"
+              hidden
+            >
+              <Input />
+            </Form.Item>
             <Form.Item
               name="title"
               label="账单名称"
@@ -527,62 +480,6 @@ const BillManagement: React.FC = () => {
             </Space>
           </div>
         </Form>
-      </Modal>
-
-      {/* 账单详情模态框 */}
-      <Modal
-        title="账单详情"
-        open={isDetailModalVisible}
-        onCancel={() => setIsDetailModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setIsDetailModalVisible(false)}>
-            关闭
-          </Button>
-        ]}
-        width={700}
-      >
-        {selectedBill && (
-          <div>
-            <Row gutter={[16, 16]}>
-              <Col span={12}>
-                <Card size="small" title="基本信息">
-                  <p><strong>标题：</strong>{selectedBill.title}</p>
-                  <p><strong>描述：</strong>{selectedBill.description || '无'}</p>
-                  <p><strong>总金额：</strong>¥{selectedBill.totalAmount.toFixed(2)}</p>
-                  <p><strong>付款人：</strong>{selectedBill.payer?.username || '未知'}</p>
-                  <p><strong>状态：</strong>{getStatusTag(selectedBill.status)}</p>
-                  <p><strong>创建时间：</strong>{new Date(selectedBill.createdAt).toLocaleString()}</p>
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card size="small" title="参与者详情">
-                  {selectedBill.participants.map(participant => (
-                    <div key={participant.id} style={{ marginBottom: 12, padding: 8, border: '1px solid #f0f0f0', borderRadius: 4 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontWeight: 'bold' }}>{participant.person?.name}</div>
-                          <div style={{ fontSize: '12px', color: '#666' }}>
-                            比例: {participant.shareRatio} | 金额: ¥{participant.shareAmount?.toFixed(2)}
-                          </div>
-                        </div>
-                        <Checkbox
-                          checked={participant.isPaid}
-                          onChange={(e) => handlePaymentStatusChange(
-                            selectedBill.id,
-                            participant.id!,
-                            e.target.checked
-                          )}
-                        >
-                          已支付
-                        </Checkbox>
-                      </div>
-                    </div>
-                  ))}
-                </Card>
-              </Col>
-            </Row>
-          </div>
-        )}
       </Modal>
     </div>
   );

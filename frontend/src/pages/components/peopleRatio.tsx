@@ -18,7 +18,6 @@ export interface PeopleRatioProps {
 
 const PeopleRatio = (props: PeopleRatioProps) => {
   const { people, onChange, value } = props;
-  // const selectedIds = value?.map(p => p.id) || [];
   const valueMap = value?.reduce((acc, person) => {
     acc.set(person.id, person);
     return acc;

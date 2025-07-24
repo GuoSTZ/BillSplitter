@@ -5,7 +5,7 @@ import App from './App.tsx'
 import 'antd/dist/reset.css' // 导入 Ant Design 样式
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // <StrictMode>
     <App />
-  </StrictMode>,
+  // </StrictMode>,
 )

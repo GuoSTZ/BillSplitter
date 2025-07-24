@@ -11,11 +11,10 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { BillsService } from './bills.service';
-import { CreateBillDto, UpdateBillDto, UpdateParticipantPaymentDto } from './dto/bill.dto';
+import { CreateBillDto, UpdateBillDto } from './dto/bill.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiResponse } from '../common/dto/response.dto';
 import { Bill } from './bill.entity';
-import { BillParticipant } from './bill-participant.entity';
 
 @Controller('bills')
 @UseGuards(JwtAuthGuard)
@@ -31,10 +30,11 @@ export class BillsController {
       const bill = await this.billsService.create(createBillDto, req.user.userId);
       return ApiResponse.success(bill, '账单创建成功');
     } catch (error) {
-      return ApiResponse.error(null, error.message || '账单创建失败');
+      return ApiResponse.error(error.message);
     }
   }
 
+  // 移除支付状态相关的路由
   @Get()
   async findAll(@Request() req): Promise<ApiResponse<Bill[]>> {
     try {
@@ -92,26 +92,6 @@ export class BillsController {
       return ApiResponse.success(null, '账单删除成功');
     } catch (error) {
       return ApiResponse.error(null, error.message || '账单删除失败');
-    }
-  }
-
-  @Patch(':billId/participants/:participantId/payment')
-  async updateParticipantPayment(
-    @Param('billId', ParseIntPipe) billId: number,
-    @Param('participantId', ParseIntPipe) participantId: number,
-    @Body() updateDto: UpdateParticipantPaymentDto,
-    @Request() req,
-  ): Promise<ApiResponse<BillParticipant>> {
-    try {
-      const participant = await this.billsService.updateParticipantPayment(
-        billId,
-        participantId,
-        updateDto,
-        req.user.userId,
-      );
-      return ApiResponse.success(participant, '支付状态更新成功');
-    } catch (error) {
-      return ApiResponse.error(null, error.message || '支付状态更新失败');
     }
   }
 }
