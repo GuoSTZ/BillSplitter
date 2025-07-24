@@ -142,8 +142,6 @@ export class BillsService {
     await this.billsRepository.remove(bill);
   }
 
-  // 移除 updateParticipantPayment 方法
-
   async getStatistics(userId: number): Promise<any> {
     const bills = await this.findAll(userId);
     

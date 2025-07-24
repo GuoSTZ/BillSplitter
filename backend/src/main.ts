@@ -25,9 +25,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   
   // 添加全局前缀
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('billApi');
   
-  await app.listen(3000);
+  await app.listen(5200);
   console.log(`Application is running on: ${await app.getUrl()}`);
   console.log('Database: billSplitterDB on 120.26.128.141:3306');
 }

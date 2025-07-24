@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Card, Avatar, Typography, Spin, Button, message } from 'antd';
-import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { getUserInfo, logout } from '../services/auth';
-import { useNavigate } from 'react-router-dom';
+import { Card, Avatar, Typography, Spin, message } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
+import { getUserInfo } from '../services/auth';
 import '../styles/Login.css';
 
 const { Title, Text } = Typography;
@@ -18,7 +17,6 @@ interface UserInfo {
 const Profile = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -35,12 +33,6 @@ const Profile = () => {
 
     fetchUserInfo();
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    message.success('已安全退出');
-    navigate('/login');
-  };
 
   if (loading) {
     return (

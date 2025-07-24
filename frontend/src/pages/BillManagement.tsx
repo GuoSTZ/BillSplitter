@@ -277,7 +277,7 @@ const BillManagement: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          onValuesChange={(values, allValues) => {
+          onValuesChange={(_, allValues) => {
             const { billItems } = allValues;
 
             const newBillMap = new Map<number, {
