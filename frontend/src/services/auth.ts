@@ -46,6 +46,14 @@ export const isAuthenticated = (): boolean => {
   return !!token;
 };
 
+// 获取认证头
+export const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    Authorization: token ? `Bearer ${token}` : '',
+  };
+};
+
 // 获取用户信息
 export const getUserInfo = async (): Promise<UserInfo> => {
   const token = localStorage.getItem('token');
@@ -54,11 +62,8 @@ export const getUserInfo = async (): Promise<UserInfo> => {
   }
 
   try {
-    const response = await axios.get<ApiResponse<UserInfo>>(`${API_URL}/users/profile`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    // 移除手动设置的 headers，拦截器会自动处理
+    const response = await axios.get<ApiResponse<UserInfo>>(`${API_URL}/users/profile`);
     
     if (response.data.code === 0) {
       return response.data.data;
@@ -84,19 +89,6 @@ axios.interceptors.request.use(
     return config;
   },
   (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// 设置 axios 响应拦截器，处理 401 错误（未授权）
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // 清除 token 并跳转到登录页
-      logout();
-      window.location.href = '/login';
-    }
     return Promise.reject(error);
   }
 );

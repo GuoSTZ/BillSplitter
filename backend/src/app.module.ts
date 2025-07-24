@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PeopleModule } from './people/people.module';
+import { BillsModule } from './bills/bills.module'; // 添加这行
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { PeopleModule } from './people/people.module';
     UsersModule,
     AuthModule,
     PeopleModule,
+    BillsModule, // 添加这行
   ],
   controllers: [AppController],
   providers: [AppService],
