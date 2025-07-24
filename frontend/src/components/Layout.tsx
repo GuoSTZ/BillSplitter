@@ -4,11 +4,11 @@ import {
   UserOutlined,
   TeamOutlined,
   CalculatorOutlined,
-  HistoryOutlined,
   SettingOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  PieChartOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { logout, getUserInfo } from '../services/auth';
@@ -74,6 +74,11 @@ const MainLayout = () => {
 
   const sideMenuItems: MenuProps['items'] = [
     {
+      key: '/app/dashboard',
+      icon: <PieChartOutlined />,
+      label: '仪表盘',
+    },
+    {
       key: '/app/people',
       icon: <TeamOutlined />,
       label: '人员管理',
@@ -82,11 +87,6 @@ const MainLayout = () => {
       key: '/app/bills',
       icon: <CalculatorOutlined />,
       label: '账单管理',
-    },
-    {
-      key: '/app/history',
-      icon: <HistoryOutlined />,
-      label: '历史记录',
     },
   ];
 

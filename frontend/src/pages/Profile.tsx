@@ -91,19 +91,6 @@ const Profile = () => {
             </div>
           )}
         </div>
-        
-        <div className="logout-section">
-          <Button
-            type="primary"
-            danger
-            icon={<LogoutOutlined />}
-            onClick={handleLogout}
-            className="logout-button"
-            size="large"
-          >
-            退出登录
-          </Button>
-        </div>
       </Card>
     </div>
   );

@@ -136,22 +136,18 @@ const PeopleManagement = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
+          <Typography.Link onClick={() => handleEdit(record)}>
             编辑
-          </Button>
+          </Typography.Link>
           <Popconfirm
             title="确定要删除这个人员吗？"
             onConfirm={() => handleDelete(record.id)}
             okText="确定"
             cancelText="取消"
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
+            <Typography.Link type="danger">
               删除
-            </Button>
+            </Typography.Link>
           </Popconfirm>
         </Space>
       ),

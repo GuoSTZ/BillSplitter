@@ -139,7 +139,6 @@ const BillManagement: React.FC = () => {
 
   // 处理编辑
   const handleEdit = (bill: Bill) => {
-    console.log(bill, '====bill')
     setEditingBill(bill);
     setSelectedParticipants(
       bill.participants.map(p => ({
@@ -219,7 +218,7 @@ const BillManagement: React.FC = () => {
             cancelText="取消"
           >
             <Tooltip title="删除">
-              <Typography.Link>删除</Typography.Link>
+              <Typography.Link type='danger'>删除</Typography.Link>
             </Tooltip>
           </Popconfirm>
         </Space>
