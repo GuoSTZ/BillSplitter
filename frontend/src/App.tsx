@@ -10,7 +10,7 @@ import './App.css';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename='/g-bill'>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<PrivateRoute />}>

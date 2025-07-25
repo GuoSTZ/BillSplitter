@@ -1,6 +1,8 @@
 import axios from "axios";
 
-export const API_URL = '/billApi';
+export const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://localhost:5200/billApi'
+  : '/billApi';
 
 const instance = axios.create({
   baseURL: API_URL,
